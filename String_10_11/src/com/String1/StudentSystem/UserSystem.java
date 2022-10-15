@@ -1,6 +1,7 @@
 package com.String1.StudentSystem;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 public class UserSystem {
@@ -31,7 +32,114 @@ public class UserSystem {
 
     //登录
     public static void login(ArrayList<User> list) {
+        Scanner sc=new Scanner(System.in);
+        for (int i = 0; i < 3; i++) {
+            System.out.println("请输入用户名");
+            String username=sc.next();
+            //判断用户是否存在
+            boolean flag=contains(list,username);
+            if(!flag){
+                System.out.println("用户名不存在请先注册");
+                return;
+            }
+            System.out.println("请输入密码");
+            String password=sc.next();
 
+
+            //验证码判断
+            while(true) {
+                String rightCode = getCode();
+                System.out.println("正确验证码为" + rightCode);
+                System.out.println("请输入验证码");
+                String setCode = sc.next();
+                if (rightCode.equals(setCode)) {
+                    System.out.println("验证码正确");
+                    break;
+                } else {
+                    System.out.println("验证码错误");
+                    continue;
+                }
+            }
+
+            //定义一个方法验证用户名密码是否正确
+            User userInfo=new User(username,password,null,null);
+            boolean flag1=checkUserInfo(list,userInfo);
+            if(flag1){
+                System.out.println("登录成功");
+                StudentSystem ss=new StudentSystem();
+                ss.startStudentSystem();
+                break;
+
+            }else{
+                System.out.println("登录失败，用户名或密码错误");
+                if(i==2){
+                    System.out.println("当前账号"+username+"被锁定请隔10分钟在尝试");
+                    return;
+                }else{
+                    System.out.println("账户或密码错误，还剩下"+(2-i)+"次");
+                }
+            }
+
+        }
+//        //验证码判断
+//        while(true) {
+//            String rightCode = getCode();
+//            System.out.println("正确验证码为" + rightCode);
+//            System.out.println("请输入验证码");
+//            String setCode = sc.next();
+//            if (rightCode.equals(setCode)) {
+//                System.out.println("验证码正确");
+//                break;
+//            } else {
+//                System.out.println("验证码错误");
+//                continue;
+//            }
+//        }
+//        System.out.println("请输入用户名");
+//        String username=sc.next();
+//        //判断用户是否存在
+//        boolean flag=contains(list,username);
+//        if(!flag){
+//            System.out.println("用户名不存在请先注册");
+//            return;
+//        }
+//        System.out.println("请输入密码");
+//        String password=sc.next();
+//
+//        //验证码判断
+//        while(true) {
+//            String rightCode = getCode();
+//            System.out.println("正确验证码为" + rightCode);
+//            System.out.println("请输入验证码");
+//            String setCode = sc.next();
+//            if (rightCode.equals(setCode)) {
+//                System.out.println("验证码正确");
+//                break;
+//            } else {
+//                System.out.println("验证码错误");
+//                continue;
+//            }
+//        }
+//
+//        //定义一个方法验证用户名密码是否正确
+//        User userInfo=new User(username,password,null,null);
+//        boolean flag1=checkUserInfo(list,userInfo);
+//        if(flag1){
+//            System.out.println("登录成功");
+//        }else{
+//            System.out.println("登录失败，用户名或密码错误");
+//        }
+    }
+
+    //判断账号密码是否正确
+    public static boolean checkUserInfo(ArrayList<User> list,User userInfo){
+        for (int i = 0; i < list.size(); i++) {
+            User u=list.get(i);
+            if(u.getUsername().equals(userInfo.getUsername())&&u.getPassword().equals(userInfo.getPassword())){
+                 return true;
+            }
+        }
+        return false;
     }
 
     //注册
@@ -201,6 +309,95 @@ public class UserSystem {
 
     //忘记密码
     public static void forgot(ArrayList<User> list) {
+        Scanner sc=new Scanner(System.in);
+        System.out.println("请输入用户名");
+        String username=sc.next();
 
+        boolean flag=contains(list,username);
+        if(!flag){
+            System.out.println(username+"用户不存在");
+            return ;
+        }
+        //存在
+        System.out.println("请输入身份证号码");
+        String bodyId=sc.next();
+        System.out.println("请输入手机号码");
+        String phoneId=sc.next();
+
+        //当前身份证号码和手机号码
+        //通过索引获取对象
+        int index=findIndex(list,username);
+        User user=list.get(index);
+
+        //比较当前用户的身份证号码和手机号码是否一致
+        if(!(user.getBodyId().equals(bodyId)&& user.getPhoneId().equals(phoneId))){
+            System.out.println("当前用户的身份证号码和手机号码有误，不能修改密码");
+            return;
+        }
+
+        //修改密码
+        while(true) {
+            System.out.println("请输入新的密码");
+            String password = sc.next();
+            System.out.println("请再一次输入新的密码");
+            String newPassword = sc.next();
+
+            if (password.equals(newPassword)) {
+                System.out.println("俩次密码一致");
+                break;
+            } else {
+                System.out.println("俩次密码不一致重新输入");
+            }
+        }
     }
+   //获取用户的索引
+    public static int findIndex(ArrayList<User> list,String username){
+        for (int i = 0; i < list.size(); i++) {
+            User user=list.get(i);
+            if(user.getUsername().equals(username)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    //生成验证码
+    private static String getCode(){
+        //创建集合
+        ArrayList<Character> list=new ArrayList<>();
+        for (int i = 0; i < 26; i++) {
+            list.add((char)('a'+i));
+            list.add((char)('A'+i));
+        }
+        //System.out.println(list);
+        //随机索引
+        Random r=new Random();
+        StringBuilder sb=new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            int index=r.nextInt(list.size());
+            char c=list.get(index);
+            sb.append(c);
+        }
+        int num=r.nextInt(10);
+        sb.append(num);
+
+        //
+        char[] arr=sb.toString().toCharArray();
+        int rand=r.nextInt(arr.length);
+        char tmp=arr[rand];
+        arr[rand]=arr[arr.length-1];
+        arr[arr.length-1]=tmp;
+
+        return new String(arr);
+    }
+//    public static String getCode(){
+//        //创建集合
+//        ArrayList<Character> list=new ArrayList<>();
+//        for (int i = 0; i < 26; i++) {
+//            list.add((char)('a'+i));
+//            list.add((char)('A'+i));
+//        }
+//
+//
+//    }
 }
